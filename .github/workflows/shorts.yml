@@ -1,0 +1,36 @@
+name: Daily Shorts
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # UTC 0:00 → JST 9:00
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          npm ci
+
+      - name: Generate body.mp4
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run gen
+
+      - name: Concat intro+body+cv
+        run: npm run concat
+
+      - name: Upload to YouTube Shorts
+        env:
+          YT_ACCESS_TOKEN: ${{ secrets.YT_ACCESS_TOKEN }}
+          VIDEO_TITLE: 'カルチャーハックメディア｜${{ github.event.schedule || github.event_name }}'
+        run: npm run upload

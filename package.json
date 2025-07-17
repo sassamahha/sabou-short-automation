@@ -1,0 +1,17 @@
+{
+  "name": "shorts-automation",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "gen": "node scripts/generate_body.js",
+    "concat": "node scripts/concat.js",
+    "upload": "node scripts/youtube_upload.js"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "ffmpeg-static": "^5.1.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "openai": "^4.26.1",
+    "puppeteer": "^22.7.1"
+  }
+}
