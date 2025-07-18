@@ -36,4 +36,4 @@ jobs:
         env:
           YT_ACCESS_TOKEN: ${{ secrets.YT_ACCESS_TOKEN }}
           VIDEO_TITLE: "ささきや茶房 #Bonfilet #チーム #カルチャー"
-        run: node scripts/upload.js
+        run: node scripts/youtube_upload.js
