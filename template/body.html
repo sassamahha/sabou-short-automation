@@ -1,44 +1,38 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!DOCTYPE html><html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<title>Shorts Body</title>
+<meta charset="UTF-8"><style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;}
+/* 背景画像＋白透過マスク */
+body::before{
+  content:'';position:absolute;inset:0;
+  background:url("../assets/intro_bg.jpg") center/cover no-repeat;
+  filter:blur(2px);
+}
+body::after{
+  content:'';position:absolute;inset:0;background:#fff8; /* 白8割 */
+}
 
-<!-- フォント -->
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet" />
+/* テキスト */
+#txt{
+  font-family:"Noto Sans JP",sans-serif;font-weight:700;
+  font-size:48px;line-height:1.6;white-space:pre-wrap;
+  position:absolute;left:50%;top:100%;transform:translate(-50%,0);
+  width:90%;text-align:center;
+  animation:scroll 36s linear forwards;           /* ← 36 秒でゆっくり */
+  z-index:2;
+}
 
-<style>
-  html,body{
-    margin:0;
-    width:1080px;
-    height:1920px;
-    background:url('../assets/intro_bg.jpg') center/cover no-repeat;
-    overflow:hidden;
-  }
-
-
-  #txt{
-    position:absolute; left:50%; top:100%;
-    transform:translateX(-50%);
-    width:80%; font:64px/1.6 'Noto Sans JP', sans-serif;
-    white-space:pre-wrap; text-align:center;
-    animation:scroll 54s linear forwards;
-  }
-
-  @keyframes scroll{
-    from{ transform:translate(-50%,0%);    }
-    to  { transform:translate(-50%,-100%); }
-  }
-</style>
-</head>
+/* 100% → -100% まで上に流す */
+@keyframes scroll{
+  from{transform:translate(-50%,0)}
+  to  {transform:translate(-50%,-200%)}           /* テキスト量が多くても流し切る */
+}
+</style></head>
 <body>
-  <div class="mask"></div>
-  <div id="txt"></div>
-
+<div id="txt"></div>
 <script>
-  /* URL # 以降に入れたスクリプト文を挿入 */
-  const text = decodeURIComponent(location.hash.slice(1));
-  document.getElementById('txt').textContent = text;
+// ハッシュ(#以降)をデコードして全文挿入
+document.getElementById('txt').textContent =
+  decodeURIComponent(location.hash.slice(1));
 </script>
-</body>
-</html>
+</body></html>

@@ -1,58 +1,39 @@
 name: Daily Shorts
-
 on:
   schedule:
-    - cron: '0 0 * * *'   # UTC 0:00 = JST 9:00
+    - cron: '0 0 * * *'       # UTC0:00 → JST9:00
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. コードを取ってくる
       - uses: actions/checkout@v4
 
-      # 2. Node.js をセットアップ
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: { node-version: 20 }
 
-      # 3. 必要なパッケージをインストール
-      - name: Install deps
+      - name: Install deps & ffmpeg
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-          npm install --no-audit --no-fund
+          npm ci --omit=dev
 
-      # 4. Refresh Token → Access Token を生成
-      - name: Get new access token
-        run: |
-          TOK=$(curl -s \
-            -d client_id=$YT_CLIENT_ID \
-            -d client_secret=$YT_CLIENT_SECRET \
-            -d refresh_token=$YT_REFRESH_TOKEN \
-            -d grant_type=refresh_token \
-            https://oauth2.googleapis.com/token | jq -r .access_token)
-          echo "YT_ACCESS_TOKEN=$TOK" >> $GITHUB_ENV
-        env:
-          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
-          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
-          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
-
-      # 5. body.mp4 を生成
+      # ───── body.mp4 を生成 ─────
       - name: Generate body.mp4
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: npm run gen
+        run: node scripts/generate_body.js
 
-      # 6. intro + body + cv を結合
+      # ───── intro + body + cv を結合 ─────
       - name: Concat intro+body+cv
-        run: npm run concat
+        run: |
+          ffmpeg -y \
+            -i assets/intro.mp4 -i assets/body.mp4 -i assets/cv.mp4 \
+            -filter_complex "[0:v][1:v][2:v]concat=n=3:v=1:a=0,format=yuv420p[v]" \
+            -map "[v]" -t 41 final.mp4   # 36+2.5+2.5 ≒ 41s
 
-      # 7. YouTube Shorts にアップロード
+      # ───── YouTube Shorts アップロード ─────
       - name: Upload to YouTube Shorts
         env:
-          YT_ACCESS_TOKEN: ${{ env.YT_ACCESS_TOKEN }}
-          VIDEO_TITLE: "カルチャーハックメディア｜${{ github.event_name }}"
-        run: npm run upload
+          YT_ACCESS_TOKEN: ${{ secrets.YT_ACCESS_TOKEN }}
+          VIDEO_TITLE: "ささきや茶房 #Bonfilet #チーム #カルチャー"
+        run: node scripts/upload.js
