@@ -1,17 +1,22 @@
 name: Daily Shorts
+
 on:
   schedule:
-    - cron: '0 0 * * *'       # UTC0:00 → JST9:00
+    # 毎日 09:00 (JST) に実行
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # ─────────────── 初期セットアップ ───────────────
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
 
       - name: Install deps & ffmpeg
         run: |
@@ -19,21 +24,37 @@ jobs:
           sudo apt-get install -y ffmpeg
           npm ci --omit=dev
 
-      # ───── body.mp4 を生成 ─────
+      # ─────────────── body.mp4 を生成 ───────────────
       - name: Generate body.mp4
         run: node scripts/generate_body.js
 
-      # ───── intro + body + cv を結合 ─────
+      # ───────── intro + body + cv を結合 (約 41 秒) ─────────
       - name: Concat intro+body+cv
         run: |
           ffmpeg -y \
             -i assets/intro.mp4 -i assets/body.mp4 -i assets/cv.mp4 \
             -filter_complex "[0:v][1:v][2:v]concat=n=3:v=1:a=0,format=yuv420p[v]" \
-            -map "[v]" -t 41 final.mp4   # 36+2.5+2.5 ≒ 41s
+            -map "[v]" -t 41 final.mp4
 
-      # ───── YouTube Shorts アップロード ─────
+      # ─────────────── アクセストークンを取得 ───────────────
+      - name: Get new access token
+        id: token
+        env:
+          CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          TOK=$(curl -s \
+              -d client_id=$CLIENT_ID \
+              -d client_secret=$CLIENT_SECRET \
+              -d refresh_token=$REFRESH_TOKEN \
+              -d grant_type=refresh_token \
+              https://oauth2.googleapis.com/token | jq -r .access_token)
+          echo "token=$TOK" >> "$GITHUB_OUTPUT"
+
+      # ─────────────── YouTube Shorts へアップロード ───────────────
       - name: Upload to YouTube Shorts
         env:
-          YT_ACCESS_TOKEN: ${{ secrets.YT_ACCESS_TOKEN }}
+          YT_ACCESS_TOKEN: ${{ steps.token.outputs.token }}
           VIDEO_TITLE: "ささきや茶房 #Bonfilet #チーム #カルチャー"
         run: node scripts/youtube_upload.js
