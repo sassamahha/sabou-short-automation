@@ -1,33 +1,51 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Shorts Body</title>
+
+<!-- フォント -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet" />
+
 <style>
-  @font-face {
-    font-family: 'NotoBold';
-    src: url('../assets/NotoSansJP-Bold.ttf') format('truetype');
+  /* 🅰 背景に intro と同じ画像を敷く（assets/intro_bg.jpg を置いておく） */
+  html,body{
+    margin:0;
+    width:1080px;
+    height:1920px;
+    background:url('../assets/intro_bg.jpg') center/cover no-repeat;
+    overflow:hidden;
   }
-  html,body { margin:0; width:1080px; height:1920px; background:#fff; }
-  #txt {
-    position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    width:80%; font:64px/1.4 'NotoBold', sans-serif; white-space:pre-wrap;
-    text-align:center;
+
+  /* 🅱 白 75 % 透過マスク */
+  .mask{
+    position:absolute; inset:0;
+    background:rgba(255,255,255,0.75);
+  }
+
+  /* 🅲 テキスト（開始位置：画面下→上へスクロール） */
+  #txt{
+    position:absolute; left:50%; top:100%;
+    transform:translateX(-50%);
+    width:80%; font:64px/1.6 'Noto Sans JP', sans-serif;
+    white-space:pre-wrap; text-align:center;
+    animation:scroll 10s linear forwards;
+  }
+
+  @keyframes scroll{
+    from{ transform:translate(-50%,0%);    }
+    to  { transform:translate(-50%,-100%); }
   }
 </style>
 </head>
 <body>
-<div id="txt"></div>
+  <div class="mask"></div>
+  <div id="txt"></div>
+
 <script>
+  /* URL # 以降に入れたスクリプト文を挿入 */
   const text = decodeURIComponent(location.hash.slice(1));
-  const el = document.getElementById('txt');
-  let i = 0;
-  function type() {
-    el.textContent = text.slice(0, ++i);
-    if (i < text.length) setTimeout(type, 40);    // 0.04 s / 文字
-  }
-  type();
+  document.getElementById('txt').textContent = text;
 </script>
 </body>
 </html>
