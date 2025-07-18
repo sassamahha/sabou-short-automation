@@ -40,7 +40,7 @@ async function captureFrames (script) {
   const url = 'file://' + path.resolve('template/body.html') + '#' + encodeURIComponent(script);
   await page.goto(url, { waitUntil: 'networkidle0' });
 
-  for (let i = 0; i < 300; i++) {          // 10 s × 30 fps
+  for (let i = 0; i < 1620; i++) {          // 54 s × 30 fps
     const fn = `frames/frame-${String(i).padStart(3, '0')}.png`;
     await page.screenshot({ path: fn });
     // Node.js 標準の setTimeout で 33 ms 待つ
@@ -61,8 +61,8 @@ function makeBodyMp4 () {
 /* ------------ 5. メイン ------------ */
 (async () => {
   const article = await fetchArticle();
-  const script  = await summarize(article);
+  const script  = article;
   await captureFrames(script);
-  makeBodyMp4();
+  makeBodyMp4(54);
   console.log('✅ body.mp4 generated');
 })();
