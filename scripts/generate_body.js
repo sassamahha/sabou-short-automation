@@ -24,6 +24,7 @@ AIのアウトプットを理解し、適切にフィードバックするスキ
 async function captureFrames (text, duration = 36) {      // ← 36s (1/3 速度)
   const browser = await puppeteer.launch({
     headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: { width: 1080, height: 1920 }
   });
   const page = await browser.newPage();
